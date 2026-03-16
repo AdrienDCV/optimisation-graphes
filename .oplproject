@@ -6,30 +6,40 @@
         		
         <config default="true" name="Problem1" category="opl">
             			
-            <ref name="problem1.mod" type="model">
+            <ref name="models/problem1.mod" type="model">
 			</ref>
             			
-            <ref name="data-problem1.dat" type="data">
+            <ref name="data/data-problem1.dat" type="data">
 			</ref>
             		
         </config>
         		
         <config default="false" name="Problem2" category="opl">
             			
-            <ref name="problem2.mod" type="model">
+            <ref name="models/problem2.mod" type="model">
 			</ref>
             			
-            <ref name="data-problem2.dat" type="data">
+            <ref name="data/data-problem2.dat" type="data">
 			</ref>
             		
         </config>
         		
         <config default="false" name="Problem3" category="opl">
             			
-            <ref name="problem3.mod" type="model">
+            <ref name="models/problem3.mod" type="model">
 			</ref>
             			
-            <ref name="data-problem3.dat" type="data">
+            <ref name="data/data-problem3.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland1" category="opl">
+            			
+            <ref name="models/problem1.mod" type="model">
+			</ref>
+            			
+            <ref name="data/airland1.dat" type="data">
 			</ref>
             		
         </config>
