@@ -4,7 +4,7 @@
  * Creation Date: Mar 3, 2026 at 10:35:30 AM
  *********************************************/
  
- // =====================================================
+// =====================================================
 // AIRCRAFT LANDING PROBLEM - PROBLEM 1
 // Minimizing Weighted Early/Late Penalties
 // Single Runway Version
@@ -15,46 +15,42 @@
 // SETS
 // ======================
 
-int n = ...;                 
+int n = ...;
 range I = 1..n;
 
-
-// ======================
-// PARAMETERS (given in ALP_Problem1.dat file)
-// ======================
-
-float E[I] = ...;            // Earliest landing times
-float L[I] = ...;            // Latest landing times
-float T[I] = ...;            // Target landing times
-
-float cMinus[I] = ...;       // Weight for early landing
-float cPlus[I]  = ...;       // Weight for late landing
-
-float s[I][I] = ...;         // Separation time matrix
-
-float M = ...;               // Big-M constant
+int m = ...;
+range R = 1..m;
 
 
 // ======================
-// DECISION VARIABLES
+// PARAMETERS
 // ======================
 
-dvar float+ x[I];            // Landing times
+float E[I] = ...;        // Earliest landing times
+float L[I] = ...;        // Latest landing times
+float T[I] = ...;        // Target landing times
 
-dvar float+ alpha[I];        // Early penalty
-dvar float+ beta[I];         // Late penalty
+float cMinus[I] = ...;   // Early penalty weight
+float cPlus[I]  = ...;   // Late penalty weight
 
-dvar boolean y[I][I];        // y[i][j] = 1 if i lands before j
+float s[I][I] = ...;     // Separation times
+
+float M = ...;
 
 
 // ======================
-// OBJECTIVE FUNCTION
-//
-// We aim to minimize the total cost of weighted advances and delays
-// For each aircraft i:
-//  - cMinus[i] * alpha[i] -> penalty if aircraft lands too early
-//  - cPlus[i] * beta[i] -> penalty if aircraft lands too late 
-//  - sum(i in I) -> sum across all aircraft
+// VARIABLES
+// ======================
+
+dvar float+ x[I];        // landing times
+dvar float+ alpha[I];    // early deviation
+dvar float+ beta[I];     // late deviation
+
+dvar boolean z[I][I];    // ordering (i before j)
+
+
+// ======================
+// OBJECTIVE
 // ======================
 
 minimize
@@ -68,50 +64,54 @@ minimize
 
 subject to {
 
-   // ----------------------
-   // Time windows
-   //
-   // Each aircraft must land between its earliest and latest times
-   // ----------------------
+   // =====================================================
+   // 1. Fenêtres de temps
+   // Chaque avion doit respecter son intervalle autorisé
+   // =====================================================
    forall(i in I)
       E[i] <= x[i] <= L[i];
 
-   // ----------------------
-   // Early / Late definition
-   //
-   // alpha[i] ≥ actual advance → if aircraft arrives after T[i], alpha[i]=0
-   // beta[i] ≥ actual delay → if aircraft arrives before T[i], beta[i]=0
-   // As alpha[i] and beta[i] are minimised, CPLEX will automatically set the correct value to 0
-   // ----------------------
+
+   // =====================================================
+   // 2. Early / Late definition
+   // =====================================================
    forall(i in I) {
       alpha[i] >= T[i] - x[i];
       beta[i]  >= x[i] - T[i];
+
+      alpha[i] >= 0;
+      beta[i]  >= 0;
    }
 
-   // ----------------------
-   // Ordering constraints
-   // ----------------------
-
-   // No self-ordering
-   // A plane cannot be ahead of itself
+   // =====================================================
+   // 3. Contraintes d’ordre
+   // =====================================================
+   // Un avion ne peut pas être avant lui-même
    forall(i in I)
-      y[i][i] == 0;
+      z[i][i] == 0;
 
-   // Exactly one ordering between each pair
-   // For each pair of aircraft i ≠ j, exactly one order is chosen:
-   //   - Either i before j, or j before i.
+   // Pour chaque paire, un ordre unique est imposé
+   // (évite les conflits de séquencement)
    forall(i in I, j in I : i < j)
-      y[i][j] + y[j][i] == 1;
+      z[i][j] + z[j][i] == 1;
 
-   // ----------------------
-   // Separation constraints (Big-M formulation)
-   //
-   // If y[i][j] = 1 → i before j -> x[j] ≥ x[i] + s[i][j]
-   // If y[i][j] = 0 → j before i -> constraint disabled thanks to the term - M*(1 - y[i][j])
-   // ----------------------
 
-   forall(i in I, j in I : i != j) {
-      x[j] >= x[i] + s[i][j] - M * (1 - y[i][j]);
-   }
+   // =====================================================
+   // 4. Contraintes de séparation (Big-M)
+   // =====================================================
+	forall(i in I, j in I : i != j) {
+	
+	   x[j] >= x[i] + s[i][j]
+	           - M * (1 - z[i][j]);
+	
+	   x[i] >= x[j] + s[j][i]
+	           - M * (1 - z[j][i]);
+	
+	}
 
+}
+
+execute {
+  writeln("Objective value = ", cplex.getObjValue());
+  writeln("Landing times x = ", x);
 }

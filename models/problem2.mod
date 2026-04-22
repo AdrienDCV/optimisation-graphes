@@ -4,90 +4,115 @@
  * Creation Date: Mar 3, 2026 at 10:39:04 AM
  *********************************************/
 
- // =====================================================
+// =====================================================
 // AIRCRAFT LANDING PROBLEM - PROBLEM 2
-// Minimizing Makespan
-// Single Runway Version
+// Minimisation du makespan (temps du dernier atterrissage)
+// Version multi-pistes
 // =====================================================
 
 
 // ======================
-// SETS
+// SETS (ENSEMBLES)
 // ======================
 
 int n = ...;
-range I = 1..n;
+range I = 1..n;              // Ensemble des avions
+
+int m = ...;
+range R = 1..m;              // Ensemble des pistes
 
 
 // ======================
-// PARAMETERS
+// PARAMETERS (PARAMÈTRES)
 // ======================
 
-float E[I] = ...;          // Earliest landing times
-float L[I] = ...;          // Latest landing times
-float s[I][I] = ...;       // Separation time matrix
+float E[I] = ...;            // Temps d’atterrissage le plus tôt autorisé
+float L[I] = ...;            // Temps d’atterrissage le plus tard autorisé
 
-float M = ...;             // Big-M constant
+float s[I][I] = ...;         // Temps de séparation requis entre deux avions
 
-
-// ======================
-// DECISION VARIABLES
-// ======================
-
-dvar float+ x[I];          // Landing times
-dvar boolean y[I][I];      // Ordering variables
-dvar float+ Cmax;          // Makespan
+float M = ...;               // Constante Big-M
 
 
 // ======================
-// OBJECTIVE FUNCTION
-//
-// Minimize landing time of last aircraft
+// VARIABLES DE DÉCISION
 // ======================
 
-minimize Cmax;
+dvar float+ x[I];            // Temps d’atterrissage de chaque avion
+
+dvar boolean y[I][R];        // =1 si avion i est affecté à la piste r
+
+dvar boolean z[I][I];        // =1 si i atterrit avant j
+
+dvar float+ Cmax;            // Makespan = temps du dernier atterrissage
 
 
 // ======================
-// CONSTRAINTS
+// FONCTION OBJECTIF
+// ======================
+
+minimize Cmax;               // Minimiser le temps de fin global (dernier avion)
+
+
+// ======================
+// CONTRAINTES
 // ======================
 
 subject to {
 
-   // ----------------------
-   // Time windows
-   // ----------------------
+   // =====================================================
+   // 1. Fenêtres de temps
+   // Chaque avion doit respecter son intervalle autorisé
+   // =====================================================
    forall(i in I)
       E[i] <= x[i] <= L[i];
 
-   // ----------------------
-   // Makespan definition
-   // Cmax ≥ x[i] for all i
-   // ----------------------
+
+   // =====================================================
+   // 2. Définition du makespan
+   // Cmax est supérieur ou égal à tous les temps d’atterrissage
+   // => il représente bien le maximum des x[i]
+   // =====================================================
    forall(i in I)
       x[i] <= Cmax;
 
-   // ----------------------
-   // Ordering constraints
-   // ----------------------
 
-   // No self-ordering
+   // =====================================================
+   // 3. Contraintes d’ordre
+   // =====================================================
+   // Un avion ne peut pas être avant lui-même
    forall(i in I)
-      y[i][i] == 0;
+      z[i][i] == 0;
 
-   // Exactly one ordering per pair
+   // Pour chaque paire, un ordre unique est imposé
+   // (évite les conflits de séquencement)
    forall(i in I, j in I : i < j)
-      y[i][j] + y[j][i] == 1;
+      z[i][j] + z[j][i] == 1;
 
-   // ----------------------
-   // Separation constraints
-   // ----------------------
-   forall(i in I, j in I : i < j) {
 
-      // If i before j
-      x[j] >= x[i] + s[i][j] - M * (1 - y[i][j]);
+   // =====================================================
+   // 4. Contraintes de séparation (Big-M)
+   // =====================================================
+	forall(i in I, j in I : i != j)
+	   forall(r in R) {
+	
+	      x[j] >= x[i] + s[i][j]
+	              - M * (1 - z[i][j])
+	              - M * (2 - y[i][r] - y[j][r]);
+	
+	      x[i] >= x[j] + s[j][i]
+	              - M * (1 - z[j][i])
+	              - M * (2 - y[i][r] - y[j][r]);
+	   }
 
-      // If j before i
-      x[i] >= x[j] + s[j][i] - M * (1 - y[j][i]);
-   }
+}
+
+
+// ======================
+// AFFICHAGE DES RÉSULTATS
+// ======================
+
+execute {
+  writeln("Objective value = ", cplex.getObjValue());  // valeur du makespan optimal
+  writeln("Landing times x = ", x);                    // planning des atterrissages
 }
