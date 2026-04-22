@@ -6,7 +6,7 @@
         		
         <config default="true" name="Problem1" category="opl">
             			
-            <ref name="models/problem1.mod" type="model">
+            <ref name="data/data-evaluation-airland1.dat" type="data">
 			</ref>
             			
             <ref name="data/data-problem1.dat" type="data">
@@ -34,12 +34,82 @@
             		
         </config>
         		
-        <config default="false" name="Airland1" category="opl">
+        <config default="false" name="Cross Validation Airland1" category="opl">
+            			
+            <ref name="data/data-evaluation-airland1.dat" type="data">
+			</ref>
+            			
+            <ref name="models/problem-cross-evaluation.mod" type="model">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland1 - P1" category="opl">
+            			
+            <ref name="data/data-airland1-problem1.dat" type="data">
+			</ref>
+            			
+            <ref name="models/problem1.mod" type="model">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland1 - P2" category="opl">
+            			
+            <ref name="data/data-airland1-problem2.dat" type="data">
+			</ref>
+            			
+            <ref name="models/problem2.mod" type="model">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland1 - P3" category="opl">
+            			
+            <ref name="data/data-airland1-problem3.dat" type="data">
+			</ref>
+            			
+            <ref name="models/problem3.mod" type="model">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland2 - P1" category="opl">
             			
             <ref name="models/problem1.mod" type="model">
 			</ref>
             			
-            <ref name="data/airland1.dat" type="data">
+            <ref name="data/data-airland2-problem1.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland2 - P2" category="opl">
+            			
+            <ref name="models/problem2.mod" type="model">
+			</ref>
+            			
+            <ref name="data/data-airland2-problem2.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Airland2 - P3" category="opl">
+            			
+            <ref name="models/problem3.mod" type="model">
+			</ref>
+            			
+            <ref name="data/data-airland2-problem3.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="Cross Validation Airland2" category="opl">
+            			
+            <ref name="data/data-evaluation-airland2.dat" type="data">
+			</ref>
+            			
+            <ref name="models/problem-cross-evaluation.mod" type="model">
 			</ref>
             		
         </config>
