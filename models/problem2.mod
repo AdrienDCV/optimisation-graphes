@@ -5,14 +5,13 @@
  *********************************************/
 
 // =====================================================
-// AIRCRAFT LANDING PROBLEM - PROBLEM 2
+// PROBLÈME D’ATTERRISSAGE D’AVIONS - PROBLÈME 2
 // Minimisation du makespan (temps du dernier atterrissage)
-// Version multi-pistes
 // =====================================================
 
 
 // ======================
-// SETS (ENSEMBLES)
+// ENSEMBLES
 // ======================
 
 int n = ...;
@@ -23,35 +22,35 @@ range R = 1..m;              // Ensemble des pistes
 
 
 // ======================
-// PARAMETERS (PARAMÈTRES)
+// PARAMÈTRES
 // ======================
 
-float E[I] = ...;            // Temps d’atterrissage le plus tôt autorisé
-float L[I] = ...;            // Temps d’atterrissage le plus tard autorisé
+float E[I] = ...;            // Dates d’atterrissage les plus tôt
+float L[I] = ...;            // Dates d’atterrissage les plus tard
 
-float s[I][I] = ...;         // Temps de séparation requis entre deux avions
+float s[I][I] = ...;         // Temps de séparation
 
 float M = ...;               // Constante Big-M
 
 
 // ======================
-// VARIABLES DE DÉCISION
+// VARIABLES
 // ======================
 
-dvar float+ x[I];            // Temps d’atterrissage de chaque avion
+dvar float+ x[I];            // temps d’atterrissage
 
-dvar boolean y[I][R];        // =1 si avion i est affecté à la piste r
+dvar boolean y[I][R];        // affectation (i sur la piste r)
 
-dvar boolean z[I][I];        // =1 si i atterrit avant j
+dvar boolean z[I][I];        // ordre (i avant j)
 
-dvar float+ Cmax;            // Makespan = temps du dernier atterrissage
+dvar float+ Cmax;            // makespan (dernier temps d’atterrissage)
 
 
 // ======================
-// FONCTION OBJECTIF
+// OBJECTIF
 // ======================
 
-minimize Cmax;               // Minimiser le temps de fin global (dernier avion)
+minimize Cmax;               // Minimiser le temps du dernier atterrissage
 
 
 // ======================
@@ -71,7 +70,6 @@ subject to {
    // =====================================================
    // 2. Définition du makespan
    // Cmax est supérieur ou égal à tous les temps d’atterrissage
-   // => il représente bien le maximum des x[i]
    // =====================================================
    forall(i in I)
       x[i] <= Cmax;
@@ -92,6 +90,7 @@ subject to {
 
    // =====================================================
    // 4. Contraintes de séparation (Big-M)
+   // Appliquées uniquement si deux avions sont sur la même piste
    // =====================================================
 	forall(i in I, j in I : i != j)
 	   forall(r in R) {
@@ -107,12 +106,7 @@ subject to {
 
 }
 
-
-// ======================
-// AFFICHAGE DES RÉSULTATS
-// ======================
-
 execute {
-  writeln("Objective value = ", cplex.getObjValue());  // valeur du makespan optimal
-  writeln("Landing times x = ", x);                    // planning des atterrissages
+  writeln("Objective value = ", cplex.getObjValue());
+  writeln("Landing times x = ", x);
 }

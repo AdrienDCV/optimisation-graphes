@@ -5,14 +5,14 @@
  *********************************************/
 
 // =====================================================
-// AIRCRAFT LANDING PROBLEM - PROBLEM 3 (CORRECTED)
-// Minimisation du retard total (Total Lateness)
+// PROBLÈME D’ATTERRISSAGE D’AVIONS - PROBLÈME 3 (CORRIGÉ)
+// Minimisation du retard total (retard cumulé)
 // Avec affectation aux pistes et temps additionnels
 // =====================================================
 
 
 // ======================
-// SETS (ENSEMBLES)
+// ENSEMBLES
 // ======================
 
 int n = ...;
@@ -23,15 +23,15 @@ range R = 1..m;              // Ensemble des pistes
 
 
 // ======================
-// PARAMETERS (PARAMÈTRES)
+// PARAMÈTRES
 // ======================
 
-float E[I] = ...;            // Temps d’atterrissage minimum autorisé
-float L[I] = ...;            // Temps d’atterrissage maximum autorisé
+float E[I] = ...;            // Dates d’atterrissage les plus tôt
+float L[I] = ...;            // Dates d’atterrissage les plus tard
 
-float A[I] = ...;            // Heure souhaitée / deadline (due date)
+float A[I] = ...;            // Dates cibles (deadlines)
 
-float s[I][I] = ...;         // Temps de séparation entre i puis j
+float s[I][I] = ...;         // Temps de séparation
 
 float t[I][R] = ...;         // Temps additionnel dépendant de la piste
                              // (ex : roulage, accès terminal, etc.)
@@ -40,23 +40,23 @@ float M = ...;               // Constante Big-M
 
 
 // ======================
-// VARIABLES DE DÉCISION
+// VARIABLES
 // ======================
 
-dvar float+ x[I];            // Temps d’atterrissage de l’avion i
+dvar float+ x[I];            // temps d’atterrissage
 
-dvar boolean y[I][R];        // =1 si i est affecté à la piste r
+dvar boolean y[I][R];        // affectation (i sur la piste r)
 
-dvar boolean z[I][I];        // =1 si i atterrit avant j
+dvar boolean z[I][I];        // ordre (i avant j)
 
-dvar float+ Late[I];         // Retard de l’avion i (tardiness)
+dvar float+ Late[I];         // retard
 
 
 // ======================
-// FONCTION OBJECTIF
+// OBJECTIF
 // ======================
 
-// Minimiser la somme des retards (pas de pénalité d’avance ici)
+// Minimiser la somme des retards (pas de pénalité d’avance)
 minimize sum(i in I) Late[i];
 
 
@@ -66,88 +66,72 @@ minimize sum(i in I) Late[i];
 
 subject to {
 
-   // ----------------------
+   // =====================================================
    // 1. Fenêtres de temps
-   // Chaque avion doit atterrir dans son intervalle autorisé
-   // ----------------------
+   // Chaque avion doit respecter son intervalle autorisé
+   // =====================================================
    forall(i in I)
       E[i] <= x[i] <= L[i];
 
 
-   // ----------------------
+   // =====================================================
    // 2. Affectation aux pistes
-   // Chaque avion est assigné à exactement une piste
-   // ----------------------
+   // Chaque avion est affecté à exactement une piste
+   // =====================================================
    forall(i in I)
       sum(r in R) y[i][r] == 1;
 
 
-   // ----------------------
-   // 3. Définition de l’ordre
-   // ----------------------
+   // =====================================================
+   // 3. Contraintes d’ordre
+   // =====================================================
 
-   // Pas d’auto-précédence
+   // Un avion ne peut pas être avant lui-même
    forall(i in I)
       z[i][i] == 0;
 
-   // Pour chaque paire, un seul ordre possible
+   // Pour chaque paire, un ordre unique est imposé
+   // (évite les conflits de séquencement)
    forall(i in I, j in I : i < j)
       z[i][j] + z[j][i] == 1;
 
 
    // =====================================================
-   // 4. Contraintes de séparation (sécurité)
-   //
-   // Actives uniquement si :
-   //   - même piste
-   //   - ET ordre choisi
+   // 4. Contraintes de séparation (Big-M)
+   // Appliquées uniquement si deux avions sont sur la même piste
    // =====================================================
    forall(i in I, j in I : i != j, r in R) {
 
-      // Si i avant j sur la piste r
       x[j] >= x[i] + s[i][j]
-              - M * (1 - z[i][j])              // désactive si i n’est pas avant j
-              - M * (2 - y[i][r] - y[j][r]);   // désactive si pistes différentes
+              - M * (1 - z[i][j])
+              - M * (2 - y[i][r] - y[j][r]);
 
-      // Cas symétrique : j avant i
       x[i] >= x[j] + s[j][i]
               - M * (1 - z[j][i])
               - M * (2 - y[i][r] - y[j][r]);
    }
 
 
-   // ----------------------
-   // 5. Définition du retard (lateness)
-   //
-   // Lateness = (temps réel d’arrivée au "système final")
-   //            - deadline A[i]
-   //
-   // Ici on ajoute :
-   //   - temps d’atterrissage x[i]
-   //   - temps dépendant de la piste t[i][r]
-   // ----------------------
+   // =====================================================
+   // 5. Définition du retard
+   // Le retard correspond à l’écart au-delà de la date cible
+   // (en tenant compte du temps additionnel de la piste)
+   // =====================================================
    forall(i in I) {
 
-      // retard >= (temps total - deadline)
       Late[i] >= x[i]
-                 + sum(r in R)(t[i][r] * y[i][r])   // sélection du bon t[i][r]
+                 + sum(r in R)(t[i][r] * y[i][r])
                  - A[i];
 
-      // pas de retard négatif (on ignore l’avance)
       Late[i] >= 0;
    }
 
 }
 
-
-// ======================
-// AFFICHAGE DES RÉSULTATS
-// ======================
-
 execute {
-  writeln("Objective value = ", cplex.getObjValue());  // retard total minimal
-  writeln("Landing times x = ", x);                    // planning d’atterrissage
-  writeln("Runway assignment y = ", y);                // affectation aux pistes
-  writeln("Ordering matrix z = ", z);                  // ordre entre avions
-  writeln("Lateness = ", Late);                        // retard individuel
+  writeln("Objective value = ", cplex.getObjValue());
+  writeln("Landing times x = ", x);
+  writeln("Runway assignment y = ", y);
+  writeln("Ordering matrix z = ", z);
+  writeln("Lateness = ", Late);
 }

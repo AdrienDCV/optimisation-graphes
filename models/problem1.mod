@@ -5,35 +5,34 @@
  *********************************************/
  
 // =====================================================
-// AIRCRAFT LANDING PROBLEM - PROBLEM 1
-// Minimizing Weighted Early/Late Penalties
-// Single Runway Version
+// PROBLÈME D’ATTERRISSAGE D’AVIONS - PROBLÈME 1
+// Minimisation des pénalités pondérées d’avance et de retard
 // =====================================================
 
 
 // ======================
-// SETS
+// ENSEMBLES
 // ======================
 
 int n = ...;
-range I = 1..n;
+range I = 1..n;				// Ensemble des avions
 
 int m = ...;
-range R = 1..m;
+range R = 1..m;			 	// Ensemble des pistes
 
 
 // ======================
-// PARAMETERS
+// PARAMÈTRES
 // ======================
 
-float E[I] = ...;        // Earliest landing times
-float L[I] = ...;        // Latest landing times
-float T[I] = ...;        // Target landing times
+float E[I] = ...;        // Dates d’atterrissage les plus tôt
+float L[I] = ...;        // Dates d’atterrissage les plus tard
+float T[I] = ...;        // Dates d’atterrissage cibles
 
-float cMinus[I] = ...;   // Early penalty weight
-float cPlus[I]  = ...;   // Late penalty weight
+float cMinus[I] = ...;   // Poids de pénalité pour avance
+float cPlus[I]  = ...;   // Poids de pénalité pour retard
 
-float s[I][I] = ...;     // Separation times
+float s[I][I] = ...;     // Temps de séparation
 
 float M = ...;
 
@@ -42,15 +41,15 @@ float M = ...;
 // VARIABLES
 // ======================
 
-dvar float+ x[I];        // landing times
-dvar float+ alpha[I];    // early deviation
-dvar float+ beta[I];     // late deviation
+dvar float+ x[I];        // temps d’atterrissage
+dvar float+ alpha[I];    // avance (écart anticipé)
+dvar float+ beta[I];     // retard (écart tardif)
 
-dvar boolean z[I][I];    // ordering (i before j)
+dvar boolean z[I][I];    // ordre (i avant j)
 
 
 // ======================
-// OBJECTIVE
+// OBJECTIF
 // ======================
 
 minimize
@@ -59,7 +58,7 @@ minimize
 
 
 // ======================
-// CONSTRAINTS
+// CONTRAINTES
 // ======================
 
 subject to {
@@ -73,7 +72,7 @@ subject to {
 
 
    // =====================================================
-   // 2. Early / Late definition
+   // 2. Définition avance / retard
    // =====================================================
    forall(i in I) {
       alpha[i] >= T[i] - x[i];

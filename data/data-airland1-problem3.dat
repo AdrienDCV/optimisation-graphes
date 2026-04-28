@@ -5,33 +5,32 @@
  *********************************************/
 
 // =====================================================
-// AIRLAND1 - PROBLEM 3
+// AIRLAND1 - PROBLÈME 3
 // =====================================================
 
 n = 5;
 m = 1;
 
 // ======================
-// TIME WINDOWS
+// FENÊTRES DE TEMPS
 // ======================
-// Earliest landing times
+// Dates d’atterrissage les plus tôt
 E = [
   54, 120, 14, 21, 35
 ];
 
-// Latest landing times
+// Dates d’atterrissage les plus tard
 L = [
   129, 195, 89, 96, 110
 ];
 
-// Target / reference times
+// Dates cibles (référence / deadlines)
 A = [
   155, 258, 98, 106, 123
 ];
 
-
 // ======================
-// TAXI TIMES (t[i])
+// TEMPS ADDITIONNELS (t[i][r])
 // ======================
 t = [
   [10],
@@ -41,9 +40,8 @@ t = [
   [10]
 ];
 
-
 // ======================
-// SEPARATION TIMES s[i][j]
+// TEMPS DE SÉPARATION
 // ======================
 s = [
  [99999, 3, 15, 15, 15],
@@ -53,8 +51,7 @@ s = [
  [15, 15, 8, 8, 99999]
 ];
 
-
 // ======================
-// BIG-M
+// CONSTANTE BIG-M
 // ======================
 M = 10000;
